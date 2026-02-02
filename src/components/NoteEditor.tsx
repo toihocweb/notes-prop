@@ -208,7 +208,7 @@ export function NoteEditor({
             {/* Bottom Actions */}
             <div className="flex items-center justify-end gap-1 p-2 border-t border-neutral-200/30 bg-white/30 backdrop-blur-sm">
 
-                <PomodoroTimer />
+
 
                 <Tooltip>
                     <TooltipTrigger asChild>
