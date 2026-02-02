@@ -28,6 +28,17 @@ import {
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSub,
+    ContextMenuSubContent,
+    ContextMenuSubTrigger,
+    ContextMenuTrigger,
+    ContextMenuSeparator,
+} from "@/components/ui/context-menu";
+import { usePopOut } from '@/hooks/usePopOut';
 
 interface SidebarProps {
     notes: Note[];
@@ -184,6 +195,7 @@ export function Sidebar({
     onChangeNoteColor,
 }: SidebarProps) {
     const selectedNote = notes.find(n => n.id === selectedNoteId);
+    const { popOut } = usePopOut();
 
     return (
         <div className="w-72 h-full bg-white/80 backdrop-blur-xl flex flex-col relative group/sidebar">
@@ -229,7 +241,7 @@ export function Sidebar({
             </div>
 
             {/* Notes List */}
-            <ScrollArea className="flex-1 relative">
+            <ScrollArea className="flex-1 relative [&_[data-orientation=vertical]]:hidden">
                 <div className="py-2">
                     <AnimatePresence mode="popLayout">
                         {notes.length === 0 ? (
@@ -261,72 +273,89 @@ export function Sidebar({
                                         selectedNoteId === note.id ? "z-30" : "z-10"
                                     )}
                                 >
-                                    <div
-                                        onClick={() => onSelectNote(note.id)}
-                                        onDoubleClick={() => {
-                                            const editor = document.querySelector('.ProseMirror') as HTMLElement;
-                                            editor?.focus();
-                                        }}
-                                        className={cn(
-                                            "group relative p-3 cursor-pointer transition-all duration-200 mb-1 isolate",
-                                            selectedNoteId === note.id ? "ml-3 mr-0 rounded-l-xl rounded-r-none" : "mx-3 rounded-xl",
-                                            !selectedNoteId || selectedNoteId !== note.id ? bgColorMapLight[note.color] : ""
-                                        )}
-                                    >
-
-                                        {selectedNoteId === note.id && (
-                                            <motion.div
-                                                layoutId="active-note-border"
+                                    <ContextMenu>
+                                        <ContextMenuTrigger asChild>
+                                            <div
+                                                onClick={() => onSelectNote(note.id)}
+                                                onDoubleClick={() => {
+                                                    const editor = document.querySelector('.ProseMirror') as HTMLElement;
+                                                    editor?.focus();
+                                                }}
                                                 className={cn(
-                                                    "absolute inset-0 rounded-l-xl rounded-r-none border-2 border-r-0 z-0 pointer-events-none -mr-[2px] bg-white",
-                                                    borderColorMap[note.color],
-                                                    bgColorMapLight[note.color]
+                                                    "group relative p-3 cursor-pointer transition-all duration-200 mb-1 isolate",
+                                                    selectedNoteId === note.id ? "ml-3 mr-0 rounded-l-xl rounded-r-none" : "mx-3 rounded-xl",
+                                                    !selectedNoteId || selectedNoteId !== note.id ? bgColorMapLight[note.color] : ""
                                                 )}
-                                                initial={false}
-                                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                            />
-                                        )}
-                                        {/* Color indicator */}
-                                        <div className={cn(
-                                            "absolute left-1 top-3 bottom-3 w-1 rounded-full transition-opacity z-20",
-                                            colorMap[note.color],
-                                            selectedNoteId === note.id ? "opacity-100" : "opacity-60"
-                                        )} />
+                                            >
 
-                                        <div
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-30"
-                                        >
-                                            <PopOutButton
-                                                noteId={note.id}
-                                                noteTitle={extractTitle(note)}
-                                                initialContent={note.content}
-                                            />
-                                        </div>
+                                                {selectedNoteId === note.id && (
+                                                    <motion.div
+                                                        layoutId="active-note-border"
+                                                        className={cn(
+                                                            "absolute inset-0 rounded-l-xl rounded-r-none border-2 border-r-0 z-0 pointer-events-none -mr-[2px] bg-white",
+                                                            borderColorMap[note.color],
+                                                            bgColorMapLight[note.color]
+                                                        )}
+                                                        initial={false}
+                                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                    />
+                                                )}
+                                                {/* Color indicator */}
+                                                <div className={cn(
+                                                    "absolute left-1 top-3 bottom-3 w-1 rounded-full transition-opacity z-20",
+                                                    colorMap[note.color],
+                                                    selectedNoteId === note.id ? "opacity-100" : "opacity-60"
+                                                )} />
 
-                                        <div className="pl-3 relative z-10">
-                                            <div className="pr-8">
-                                                <div className="flex items-center gap-1.5 mb-1">
-                                                    {note.isPinned && (
-                                                        <Pin className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
-                                                    )}
-                                                    <h3 className="font-medium text-sm text-neutral-800 truncate">
-                                                        {extractTitle(note)}
-                                                    </h3>
+
+                                                <div className="pl-3 relative z-10">
+                                                    <div className="pr-8">
+                                                        <div className="flex items-center gap-1.5 mb-1">
+                                                            {note.isPinned && (
+                                                                <Pin className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
+                                                            )}
+                                                            <h3 className="font-medium text-sm text-neutral-800 truncate">
+                                                                {extractTitle(note)}
+                                                            </h3>
+                                                        </div>
+                                                        {extractPreview(note.content) && (
+                                                            <p className="text-xs text-neutral-400 truncate mb-1">
+                                                                {extractPreview(note.content)}
+                                                            </p>
+                                                        )}
+                                                        <span className="text-[10px] text-neutral-300">
+                                                            {formatDate(note.updatedAt)}
+                                                        </span>
+                                                    </div>
+
+
                                                 </div>
-                                                {extractPreview(note.content) && (
-                                                    <p className="text-xs text-neutral-400 truncate mb-1">
-                                                        {extractPreview(note.content)}
-                                                    </p>
-                                                )}
-                                                <span className="text-[10px] text-neutral-300">
-                                                    {formatDate(note.updatedAt)}
-                                                </span>
                                             </div>
-
-
-                                        </div>
-                                    </div>
+                                        </ContextMenuTrigger>
+                                        <ContextMenuContent className="w-48">
+                                            <ContextMenuItem onClick={() => onTogglePin(note.id)}>
+                                                {note.isPinned ? "Bỏ ghim" : "Ghim ghi chú"}
+                                            </ContextMenuItem>
+                                            <ContextMenuItem onClick={() => popOut({ noteId: note.id, noteTitle: extractTitle(note), noteColor: note.color, initialContent: note.content })}>
+                                                Mở cửa sổ nổi
+                                            </ContextMenuItem>
+                                            <ContextMenuSub>
+                                                <ContextMenuSubTrigger>Đổi màu</ContextMenuSubTrigger>
+                                                <ContextMenuSubContent className="w-48">
+                                                    {THEMES.map((theme) => (
+                                                        <ContextMenuItem key={theme.value} onClick={() => onChangeNoteColor(note.id, theme.value)}>
+                                                            <div className={cn("w-4 h-4 rounded-full mr-2", colorMap[theme.value])} />
+                                                            {theme.name}
+                                                        </ContextMenuItem>
+                                                    ))}
+                                                </ContextMenuSubContent>
+                                            </ContextMenuSub>
+                                            <ContextMenuSeparator />
+                                            <ContextMenuItem className="text-red-500 focus:text-red-500" onClick={() => onDeleteNote(note.id)}>
+                                                Xóa ghi chú
+                                            </ContextMenuItem>
+                                        </ContextMenuContent>
+                                    </ContextMenu>
                                 </motion.div>
                             ))
                         )}

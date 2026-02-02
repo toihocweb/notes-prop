@@ -205,72 +205,7 @@ export function NoteEditor({
                 <EditorContent editor={editor} />
             </div>
 
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-end gap-1 p-2 border-t border-neutral-200/30 bg-white/30 backdrop-blur-sm">
 
-
-
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onTogglePin}
-                            className={cn(
-                                "hover:bg-white/50",
-                                note.isPinned && "text-amber-500"
-                            )}
-                        >
-                            <Pin className={cn("w-4 h-4", note.isPinned && "fill-current")} />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{note.isPinned ? 'Bỏ ghim' : 'Ghim'}</TooltipContent>
-                </Tooltip>
-
-                <DropdownMenu>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="hover:bg-white/50">
-                                    <Palette className="w-4 h-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>Đổi màu</TooltipContent>
-                    </Tooltip>
-                    <DropdownMenuContent align="end">
-                        {THEMES.map((theme) => (
-                            <DropdownMenuItem
-                                key={theme.value}
-                                onClick={() => onChangeColor(theme.value)}
-                            >
-                                <div
-                                    className="w-4 h-4 rounded-full mr-2 border border-neutral-200"
-                                    style={{ backgroundColor: theme.preview }}
-                                />
-                                {theme.name}
-                                {note.color === theme.value && (
-                                    <span className="ml-auto text-amber-500">✓</span>
-                                )}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onDelete}
-                            className="hover:bg-red-50 text-red-500 hover:text-red-600"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Xóa ghi chú</TooltipContent>
-                </Tooltip>
-            </div>
         </motion.div>
     );
 }
