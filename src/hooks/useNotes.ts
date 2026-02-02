@@ -46,6 +46,7 @@ export function useNotes() {
             updatedAt: now,
             color,
             isPinned: false,
+            order: 0,
         };
         setNotes(prev => [newNote, ...prev]);
         setSelectedNoteId(newNote.id);
@@ -83,12 +84,19 @@ export function useNotes() {
                 }
                 return note;
             });
-            // Sort: pinned first, then by updatedAt
+            // Keep existing order, just update pinned status
+            // OR: Move pinned to top?
+            // User likely wants pinned notes to jump to top.
+            // Let's sort: Pinned first, then by existing order (index)
             return updated.sort((a, b) => {
                 if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-                return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+                return 0; // Keep relative order
             });
         });
+    }, []);
+
+    const reorderNotes = useCallback((newNotes: Note[]) => {
+        setNotes(newNotes);
     }, []);
 
     const selectedNote = notes.find(note => note.id === selectedNoteId) || null;
@@ -114,5 +122,6 @@ export function useNotes() {
         updateNote,
         deleteNote,
         togglePin,
+        reorderNotes,
     };
 }

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { PopOutButton } from '@/components/PopOutButton';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 
 
 
@@ -50,6 +50,7 @@ interface SidebarProps {
     onTogglePin: (id: string) => void;
     onSearchChange: (query: string) => void;
     onChangeNoteColor: (id: string, color: NoteColor) => void;
+    onReorderNotes: (notes: Note[]) => void;
 }
 
 function formatDate(dateString: string): string {
@@ -183,6 +184,12 @@ const ringColorMap: Record<NoteColor, string> = {
 };
 
 
+// Add useState to import
+import { useState } from 'react';
+// ... rest of imports
+
+// ... existing code ...
+
 export function Sidebar({
     notes,
     selectedNoteId,
@@ -193,21 +200,22 @@ export function Sidebar({
     onTogglePin,
     onSearchChange,
     onChangeNoteColor,
+    onReorderNotes,
 }: SidebarProps) {
     const selectedNote = notes.find(n => n.id === selectedNoteId);
     const { popOut } = usePopOut();
+    const [activeTab, setActiveTab] = useState<'all' | 'pinned'>('all');
 
     return (
         <div className="w-72 h-full bg-white/80 backdrop-blur-xl flex flex-col relative group/sidebar">
             {/* Fake Border Line */}
-            {/* Fake Border Line - Z-Index 20 to sit above inactive notes but below active one */}
             <div className={cn(
                 "absolute right-0 top-0 bottom-0 w-[2px] transition-colors duration-300 z-20 pointer-events-none",
                 selectedNote ? separatorColorMap[selectedNote.color] : "bg-neutral-200"
             )} />
 
             {/* Header */}
-            <div className="p-4 border-b border-neutral-200/50 relative z-10">
+            <div className="p-4 pb-2 border-b border-neutral-200/50 relative z-10">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <img
@@ -227,6 +235,32 @@ export function Sidebar({
                     </Button>
                 </div>
 
+                {/* Tabs */}
+                <div className="flex p-1 mb-3 bg-neutral-100/80 rounded-lg">
+                    <button
+                        onClick={() => setActiveTab('all')}
+                        className={cn(
+                            "flex-1 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
+                            activeTab === 'all'
+                                ? "bg-white text-neutral-800 shadow-sm"
+                                : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                        )}
+                    >
+                        Tất cả
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('pinned')}
+                        className={cn(
+                            "flex-1 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
+                            activeTab === 'pinned'
+                                ? "bg-white text-neutral-800 shadow-sm"
+                                : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                        )}
+                    >
+                        Ghim
+                    </button>
+                </div>
+
                 {/* Search */}
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -244,7 +278,7 @@ export function Sidebar({
             <ScrollArea className="flex-1 relative [&_[data-orientation=vertical]]:hidden">
                 <div className="py-2">
                     <AnimatePresence mode="popLayout">
-                        {notes.length === 0 ? (
+                        {notes.length === 0 && !searchQuery && activeTab === 'all' ? (
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -253,115 +287,228 @@ export function Sidebar({
                                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-neutral-100 flex items-center justify-center">
                                     <FileText className="w-8 h-8 text-neutral-300" />
                                 </div>
-                                <p className="text-sm text-neutral-400 mb-4">Chưa có ghi chú nào</p>
+                                <p className="text-sm text-neutral-400 mb-4">
+                                    {'Chưa có ghi chú nào'}
+                                </p>
                                 <Button size="sm" onClick={() => onCreateNote()}>
                                     <Plus className="w-4 h-4 mr-1" />
                                     Tạo ghi chú
                                 </Button>
                             </motion.div>
                         ) : (
-                            notes.map((note, index) => (
-                                <motion.div
-                                    key={note.id}
-                                    layout
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    transition={{ delay: index * 0.02 }}
-                                    className={cn(
-                                        "relative",
-                                        selectedNoteId === note.id ? "z-30" : "z-10"
-                                    )}
-                                >
-                                    <ContextMenu>
-                                        <ContextMenuTrigger asChild>
-                                            <div
-                                                onClick={() => onSelectNote(note.id)}
-                                                onDoubleClick={() => {
-                                                    const editor = document.querySelector('.ProseMirror') as HTMLElement;
-                                                    editor?.focus();
-                                                }}
-                                                className={cn(
-                                                    "group relative p-3 cursor-pointer transition-all duration-200 mb-1 isolate",
-                                                    selectedNoteId === note.id ? "ml-3 mr-0 rounded-l-xl rounded-r-none" : "mx-3 rounded-xl",
-                                                    !selectedNoteId || selectedNoteId !== note.id ? bgColorMapLight[note.color] : ""
-                                                )}
-                                            >
-
-                                                {selectedNoteId === note.id && (
-                                                    <motion.div
-                                                        layoutId="active-note-border"
-                                                        className={cn(
-                                                            "absolute inset-0 rounded-l-xl rounded-r-none border-2 border-r-0 z-0 pointer-events-none -mr-[2px] bg-white",
-                                                            borderColorMap[note.color],
-                                                            bgColorMapLight[note.color]
-                                                        )}
-                                                        initial={false}
-                                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                                    />
-                                                )}
-                                                {/* Color indicator */}
-                                                <div className={cn(
-                                                    "absolute left-1 top-3 bottom-3 w-1 rounded-full transition-opacity z-20",
-                                                    colorMap[note.color],
-                                                    selectedNoteId === note.id ? "opacity-100" : "opacity-60"
-                                                )} />
-
-
-                                                <div className="pl-3 relative z-10">
-                                                    <div className="pr-8">
-                                                        <div className="flex items-center gap-1.5 mb-1">
-                                                            {note.isPinned && (
-                                                                <Pin className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
-                                                            )}
-                                                            <h3 className="font-medium text-sm text-neutral-800 truncate">
-                                                                {extractTitle(note)}
-                                                            </h3>
-                                                        </div>
-                                                        {extractPreview(note.content) && (
-                                                            <p className="text-xs text-neutral-400 truncate mb-1">
-                                                                {extractPreview(note.content)}
-                                                            </p>
-                                                        )}
-                                                        <span className="text-[10px] text-neutral-300">
-                                                            {formatDate(note.updatedAt)}
-                                                        </span>
-                                                    </div>
-
-
-                                                </div>
-                                            </div>
-                                        </ContextMenuTrigger>
-                                        <ContextMenuContent className="w-48">
-                                            <ContextMenuItem onClick={() => onTogglePin(note.id)}>
-                                                {note.isPinned ? "Bỏ ghim" : "Ghim ghi chú"}
-                                            </ContextMenuItem>
-                                            <ContextMenuItem onClick={() => popOut({ noteId: note.id, noteTitle: extractTitle(note), noteColor: note.color, initialContent: note.content })}>
-                                                Mở cửa sổ nổi
-                                            </ContextMenuItem>
-                                            <ContextMenuSub>
-                                                <ContextMenuSubTrigger>Đổi màu</ContextMenuSubTrigger>
-                                                <ContextMenuSubContent className="w-48">
-                                                    {THEMES.map((theme) => (
-                                                        <ContextMenuItem key={theme.value} onClick={() => onChangeNoteColor(note.id, theme.value)}>
-                                                            <div className={cn("w-4 h-4 rounded-full mr-2", colorMap[theme.value])} />
-                                                            {theme.name}
-                                                        </ContextMenuItem>
-                                                    ))}
-                                                </ContextMenuSubContent>
-                                            </ContextMenuSub>
-                                            <ContextMenuSeparator />
-                                            <ContextMenuItem className="text-red-500 focus:text-red-500" onClick={() => onDeleteNote(note.id)}>
-                                                Xóa ghi chú
-                                            </ContextMenuItem>
-                                        </ContextMenuContent>
-                                    </ContextMenu>
-                                </motion.div>
-                            ))
+                            renderNotesList()
                         )}
                     </AnimatePresence>
                 </div>
             </ScrollArea>
         </div>
     );
+
+    function renderNoteItem(note: Note, index: number, isDragEnabled: boolean) {
+        // ...    function renderNoteItem(note: Note, index: number, isDragEnabled: boolean) {
+        const content = (
+            <div className={cn(
+                "relative",
+                selectedNoteId === note.id ? "z-30" : "z-10"
+            )}>
+                <ContextMenu>
+                    <ContextMenuTrigger asChild>
+                        <div
+                            onClick={() => onSelectNote(note.id)}
+                            onDoubleClick={() => {
+                                const editor = document.querySelector('.ProseMirror') as HTMLElement;
+                                editor?.focus();
+                            }}
+                            className={cn(
+                                "group relative p-3 cursor-pointer transition-all duration-200 mb-1 isolate",
+                                selectedNoteId === note.id ? "ml-3 mr-0 rounded-l-xl rounded-r-none" : "mx-3 rounded-xl",
+                                !selectedNoteId || selectedNoteId !== note.id ? bgColorMapLight[note.color] : ""
+                            )}
+                        >
+
+                            {selectedNoteId === note.id && (
+                                <motion.div
+                                    layoutId="active-note-border"
+                                    className={cn(
+                                        "absolute inset-0 rounded-l-xl rounded-r-none border-2 border-r-0 z-0 pointer-events-none -mr-[2px] bg-white",
+                                        borderColorMap[note.color],
+                                        bgColorMapLight[note.color]
+                                    )}
+                                    initial={false}
+                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                />
+                            )}
+                            {/* Color indicator */}
+                            <div className={cn(
+                                "absolute left-1 top-3 bottom-3 w-1 rounded-full transition-opacity z-20",
+                                colorMap[note.color],
+                                selectedNoteId === note.id ? "opacity-100" : "opacity-60"
+                            )} />
+
+
+                            <div className="pl-3 relative z-10">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                    {note.isPinned && (
+                                        <Pin className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
+                                    )}
+                                    <h3 className="font-medium text-sm text-neutral-800 truncate">
+                                        {extractTitle(note)}
+                                    </h3>
+                                </div>
+                                {extractPreview(note.content) && (
+                                    <p className="text-xs text-neutral-400 truncate mb-1">
+                                        {extractPreview(note.content)}
+                                    </p>
+                                )}
+                                <span className="text-[10px] text-neutral-300">
+                                    {formatDate(note.updatedAt)}
+                                </span>
+                            </div>
+                        </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-48 bg-white" alignOffset={5}>
+                        <ContextMenuItem
+                            onClick={() => onTogglePin(note.id)}
+                            className="focus:bg-neutral-100"
+                        >
+                            {note.isPinned ? "Bỏ ghim" : "Ghim ghi chú"}
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                            onClick={() => popOut({ noteId: note.id, noteTitle: extractTitle(note), noteColor: note.color, initialContent: note.content })}
+                            className="focus:bg-neutral-100"
+                        >
+                            Mở cửa sổ nổi
+                        </ContextMenuItem>
+                        <ContextMenuSub>
+                            <ContextMenuSubTrigger className="focus:bg-neutral-100">Đổi màu</ContextMenuSubTrigger>
+                            <ContextMenuSubContent className="w-48 bg-white">
+                                {THEMES.map((theme) => (
+                                    <ContextMenuItem
+                                        key={theme.value}
+                                        onClick={() => onChangeNoteColor(note.id, theme.value)}
+                                        className="focus:bg-neutral-100"
+                                    >
+                                        <div className={cn("w-4 h-4 rounded-full mr-2", colorMap[theme.value])} />
+                                        {theme.name}
+                                    </ContextMenuItem>
+                                ))}
+                            </ContextMenuSubContent>
+                        </ContextMenuSub>
+                        <ContextMenuSeparator />
+                        <ContextMenuItem
+                            className="text-red-500 focus:text-red-500 focus:bg-red-50"
+                            onClick={() => onDeleteNote(note.id)}
+                        >
+                            Xóa ghi chú
+                        </ContextMenuItem>
+                    </ContextMenuContent>
+                </ContextMenu>
+            </div>
+        );
+
+        if (isDragEnabled) {
+            return (
+                <Reorder.Item
+                    key={note.id}
+                    value={note}
+                    initial={{ opacity: 0, y: 20, scale: 1 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -20, scale: 1 }}
+                    whileDrag={{ zIndex: 100, scale: 1.05 }}
+                    transition={{ duration: 0.2 }}
+                    className="relative"
+                    dragListener={!searchQuery}
+                >
+                    {content}
+                </Reorder.Item>
+            );
+        }
+
+        return (
+            <motion.div
+                key={note.id}
+                layout
+                initial={{ opacity: 0, y: 20, scale: 1 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -20, scale: 1 }}
+                transition={{ delay: index * 0.02 }}
+                className="relative"
+            >
+                {content}
+            </motion.div>
+        );
+    }
+
+    function renderNotesList() {
+        const pinnedNotes = notes.filter(n => n.isPinned);
+        const unpinnedNotes = notes.filter(n => !n.isPinned);
+
+        if (searchQuery) {
+            // Search ignores tabs, searches everywhere? Or search respects tab?
+            // Usually search is global. Let's keep it global for now logic-wise.
+            const filteredNotes = notes.filter(note =>
+                extractTitle(note).toLowerCase().includes(searchQuery.toLowerCase()) ||
+                getPlainText(note.content).toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            if (filteredNotes.length === 0) {
+                return (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-12 px-4 relative z-10"
+                    >
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-neutral-100 flex items-center justify-center">
+                            <FileText className="w-8 h-8 text-neutral-300" />
+                        </div>
+                        <p className="text-sm text-neutral-400 mb-4">
+                            Không tìm thấy ghi chú
+                        </p>
+                    </motion.div>
+                );
+            }
+            return filteredNotes.map((note, index) => renderNoteItem(note, index, false));
+        }
+
+        // Pinned Tab
+        if (activeTab === 'pinned') {
+            if (pinnedNotes.length === 0) {
+                return (
+                    <div className="text-center py-8 text-neutral-400 text-sm">
+                        Chưa có ghi chú đã ghim nào
+                    </div>
+                );
+            }
+
+            const handleReorderPinnedTab = (newPinnedOrder: Note[]) => {
+                // Update ONLY the pinned items order, but we must construct the full list for onReorderNotes
+                // We kept unpinnedNotes as is.
+                onReorderNotes([...newPinnedOrder, ...unpinnedNotes]);
+            };
+
+            return (
+                <Reorder.Group axis="y" values={pinnedNotes} onReorder={handleReorderPinnedTab}>
+                    {pinnedNotes.map((note, index) => renderNoteItem(note, index, true))}
+                </Reorder.Group>
+            );
+        }
+
+        // All Tab (Default - Now behaves like "Others/Unpinned")
+        const handleReorderUnpinned = (newUnpinned: Note[]) => {
+            onReorderNotes([...pinnedNotes, ...newUnpinned]);
+        };
+
+        if (unpinnedNotes.length === 0) {
+            return (
+                <div className="text-center py-8 text-neutral-400 text-sm">
+                    Chưa có ghi chú khác
+                </div>
+            );
+        }
+
+        return (
+            <Reorder.Group axis="y" values={unpinnedNotes} onReorder={handleReorderUnpinned}>
+                {unpinnedNotes.map((note, index) => renderNoteItem(note, index, true))}
+            </Reorder.Group>
+        );
+    }
 }

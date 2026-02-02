@@ -6,6 +6,7 @@ export interface Note {
     updatedAt: string;
     color: NoteColor;
     isPinned: boolean;
+    order: number;
 }
 
 export type NoteColor =

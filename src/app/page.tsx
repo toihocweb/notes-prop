@@ -19,6 +19,7 @@ export default function Home() {
         updateNote,
         deleteNote,
         togglePin,
+        reorderNotes,
     } = useNotes();
 
     if (!isLoaded) {
@@ -74,6 +75,7 @@ export default function Home() {
                 onTogglePin={togglePin}
                 onSearchChange={setSearchQuery}
                 onChangeNoteColor={handleChangeNoteColor}
+                onReorderNotes={reorderNotes}
             />
 
             <AnimatePresence mode="wait">
