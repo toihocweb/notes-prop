@@ -293,6 +293,17 @@ export function Sidebar({
                                             selectedNoteId === note.id ? "opacity-100" : "opacity-60"
                                         )} />
 
+                                        <div
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                                        >
+                                            <PopOutButton
+                                                noteId={note.id}
+                                                noteTitle={extractTitle(note)}
+                                                initialContent={note.content}
+                                            />
+                                        </div>
+
                                         <div className="pl-3 relative z-10">
                                             <div className="pr-8">
                                                 <div className="flex items-center gap-1.5 mb-1">
@@ -313,16 +324,7 @@ export function Sidebar({
                                                 </span>
                                             </div>
 
-                                            <div
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-30"
-                                            >
-                                                <PopOutButton
-                                                    noteId={note.id}
-                                                    noteTitle={extractTitle(note)}
-                                                    initialContent={note.content}
-                                                />
-                                            </div>
+
                                         </div>
                                     </div>
                                 </motion.div>
