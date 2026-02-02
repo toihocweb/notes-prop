@@ -16,14 +16,8 @@ import { PopOutButton } from '@/components/PopOutButton';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ringColorMap: Record<NoteColor, string> = {
-    'paper-yellow': 'ring-amber-400/50',
-    'paper-green': 'ring-green-400/50',
-    'paper-pink': 'ring-pink-400/50',
-    'paper-blue': 'ring-blue-400/50',
-    'paper-purple': 'ring-purple-400/50',
-    'paper-white': 'ring-neutral-300',
-};
+
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -109,6 +103,75 @@ const bgColorMapLight: Record<NoteColor, string> = {
     'paper-white': 'bg-neutral-50',
 };
 
+
+
+const borderColorMap: Record<NoteColor, string> = {
+    'paper-yellow': 'border-amber-400',
+    'paper-green': 'border-green-400',
+    'paper-pink': 'border-pink-400',
+    'paper-blue': 'border-blue-400',
+    'paper-purple': 'border-purple-400',
+    'paper-white': 'border-neutral-300',
+};
+
+
+const strokeColorMap: Record<NoteColor, string> = {
+    'paper-yellow': 'stroke-amber-400',
+    'paper-green': 'stroke-green-400',
+    'paper-pink': 'stroke-pink-400',
+    'paper-blue': 'stroke-blue-400',
+    'paper-purple': 'stroke-purple-400',
+    'paper-white': 'stroke-neutral-300',
+};
+
+const fillColorMap: Record<NoteColor, string> = {
+    'paper-yellow': 'fill-amber-50',
+    'paper-green': 'fill-green-50',
+    'paper-pink': 'fill-pink-50',
+    'paper-blue': 'fill-blue-50',
+    'paper-purple': 'fill-purple-50',
+    'paper-white': 'fill-neutral-50',
+};
+
+const separatorColorMap: Record<NoteColor, string> = {
+    'paper-yellow': 'bg-amber-400',
+    'paper-green': 'bg-green-400',
+    'paper-pink': 'bg-pink-400',
+    'paper-blue': 'bg-blue-400',
+    'paper-purple': 'bg-purple-400',
+    'paper-white': 'bg-neutral-300',
+};
+
+const hexBorderMap: Record<NoteColor, string> = {
+    'paper-yellow': '#fbbf24', // amber-400
+    'paper-green': '#4ade80',  // green-400
+    'paper-pink': '#f472b6',   // pink-400
+    'paper-blue': '#60a5fa',   // blue-400
+    'paper-purple': '#c084fc', // purple-400
+    'paper-white': '#d4d4d4',  // neutral-300
+};
+
+const hexFillMap: Record<NoteColor, string> = {
+    'paper-yellow': '#fffbeb', // amber-50
+    'paper-green': '#f0fdf4',  // green-50
+    'paper-pink': '#fdf2f8',   // pink-50
+    'paper-blue': '#eff6ff',   // blue-50
+    'paper-purple': '#faf5ff', // purple-50
+    'paper-white': '#fafafa',  // neutral-50
+};
+
+// ... inside Sidebar component ...
+
+const ringColorMap: Record<NoteColor, string> = {
+    'paper-yellow': 'ring-amber-400',
+    'paper-green': 'ring-green-400',
+    'paper-pink': 'ring-pink-400',
+    'paper-blue': 'ring-blue-400',
+    'paper-purple': 'ring-purple-400',
+    'paper-white': 'ring-neutral-400',
+};
+
+
 export function Sidebar({
     notes,
     selectedNoteId,
@@ -120,10 +183,19 @@ export function Sidebar({
     onSearchChange,
     onChangeNoteColor,
 }: SidebarProps) {
+    const selectedNote = notes.find(n => n.id === selectedNoteId);
+
     return (
-        <div className="w-72 h-full bg-white/80 backdrop-blur-xl border-r border-neutral-200/50 flex flex-col">
+        <div className="w-72 h-full bg-white/80 backdrop-blur-xl flex flex-col relative group/sidebar">
+            {/* Fake Border Line */}
+            {/* Fake Border Line - Z-Index 20 to sit above inactive notes but below active one */}
+            <div className={cn(
+                "absolute right-0 top-0 bottom-0 w-[2px] transition-colors duration-300 z-20 pointer-events-none",
+                selectedNote ? separatorColorMap[selectedNote.color] : "bg-neutral-200"
+            )} />
+
             {/* Header */}
-            <div className="p-4 border-b border-neutral-200/50">
+            <div className="p-4 border-b border-neutral-200/50 relative z-10">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <img
@@ -157,14 +229,14 @@ export function Sidebar({
             </div>
 
             {/* Notes List */}
-            <ScrollArea className="flex-1">
-                <div className="p-2">
+            <ScrollArea className="flex-1 relative">
+                <div className="py-2">
                     <AnimatePresence mode="popLayout">
                         {notes.length === 0 ? (
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="text-center py-12 px-4"
+                                className="text-center py-12 px-4 relative z-10"
                             >
                                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-neutral-100 flex items-center justify-center">
                                     <FileText className="w-8 h-8 text-neutral-300" />
@@ -184,6 +256,10 @@ export function Sidebar({
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ delay: index * 0.02 }}
+                                    className={cn(
+                                        "relative",
+                                        selectedNoteId === note.id ? "z-30" : "z-10"
+                                    )}
                                 >
                                     <div
                                         onClick={() => onSelectNote(note.id)}
@@ -192,8 +268,9 @@ export function Sidebar({
                                             editor?.focus();
                                         }}
                                         className={cn(
-                                            "group relative p-3 rounded-xl cursor-pointer transition-all duration-200 mb-1 isolate",
-                                            bgColorMapLight[note.color]
+                                            "group relative p-3 cursor-pointer transition-all duration-200 mb-1 isolate",
+                                            selectedNoteId === note.id ? "ml-3 mr-0 rounded-l-xl rounded-r-none" : "mx-3 rounded-xl",
+                                            !selectedNoteId || selectedNoteId !== note.id ? bgColorMapLight[note.color] : ""
                                         )}
                                     >
 
@@ -201,8 +278,9 @@ export function Sidebar({
                                             <motion.div
                                                 layoutId="active-note-border"
                                                 className={cn(
-                                                    "absolute inset-0 rounded-xl ring-2 shadow-sm z-10 pointer-events-none",
-                                                    ringColorMap[note.color]
+                                                    "absolute inset-0 rounded-l-xl rounded-r-none border-2 border-r-0 z-0 pointer-events-none -mr-[2px] bg-white",
+                                                    borderColorMap[note.color],
+                                                    bgColorMapLight[note.color]
                                                 )}
                                                 initial={false}
                                                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -210,39 +288,40 @@ export function Sidebar({
                                         )}
                                         {/* Color indicator */}
                                         <div className={cn(
-                                            "absolute left-0 top-3 bottom-3 w-1 rounded-full transition-opacity z-20",
+                                            "absolute left-1 top-3 bottom-3 w-1 rounded-full transition-opacity z-20",
                                             colorMap[note.color],
                                             selectedNoteId === note.id ? "opacity-100" : "opacity-60"
                                         )} />
 
-                                        <div className="pl-3">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-1.5 mb-1">
-                                                        {note.isPinned && (
-                                                            <Pin className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                                        )}
-                                                        <h3 className="font-medium text-sm text-neutral-800 truncate">
-                                                            {extractTitle(note)}
-                                                        </h3>
-                                                    </div>
-                                                    {extractPreview(note.content) && (
-                                                        <p className="text-xs text-neutral-400 truncate mb-1">
-                                                            {extractPreview(note.content)}
-                                                        </p>
+                                        <div className="pl-3 relative z-10">
+                                            <div className="pr-8">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    {note.isPinned && (
+                                                        <Pin className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
                                                     )}
-                                                    <span className="text-[10px] text-neutral-300">
-                                                        {formatDate(note.updatedAt)}
-                                                    </span>
+                                                    <h3 className="font-medium text-sm text-neutral-800 truncate">
+                                                        {extractTitle(note)}
+                                                    </h3>
                                                 </div>
+                                                {extractPreview(note.content) && (
+                                                    <p className="text-xs text-neutral-400 truncate mb-1">
+                                                        {extractPreview(note.content)}
+                                                    </p>
+                                                )}
+                                                <span className="text-[10px] text-neutral-300">
+                                                    {formatDate(note.updatedAt)}
+                                                </span>
+                                            </div>
 
-                                                <div onClick={(e) => e.stopPropagation()} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <PopOutButton
-                                                        noteId={note.id}
-                                                        noteTitle={extractTitle(note)}
-                                                        initialContent={note.content}
-                                                    />
-                                                </div>
+                                            <div
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                                            >
+                                                <PopOutButton
+                                                    noteId={note.id}
+                                                    noteTitle={extractTitle(note)}
+                                                    initialContent={note.content}
+                                                />
                                             </div>
                                         </div>
                                     </div>

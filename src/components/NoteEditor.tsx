@@ -44,6 +44,15 @@ const bgColorMap: Record<NoteColor, string> = {
     'paper-white': 'bg-white',
 };
 
+const borderColorMap: Record<NoteColor, string> = {
+    'paper-yellow': 'border-amber-400',
+    'paper-green': 'border-green-400',
+    'paper-pink': 'border-pink-400',
+    'paper-blue': 'border-blue-400',
+    'paper-purple': 'border-purple-400',
+    'paper-white': 'border-neutral-300',
+};
+
 interface NoteEditorProps {
     note: Note | null;
     onUpdate: (updates: Partial<Omit<Note, 'id' | 'createdAt'>>) => void;
@@ -122,7 +131,7 @@ export function NoteEditor({
         content: note?.content || '',
         editorProps: {
             attributes: {
-                class: 'prose prose-neutral max-w-none focus:outline-none min-h-[calc(100vh-200px)] px-8 py-6',
+                class: 'prose prose-neutral max-w-none focus:outline-none min-h-[calc(100vh-200px)] px-12 py-8',
             },
         },
         onUpdate: ({ editor }) => {
@@ -186,7 +195,7 @@ export function NoteEditor({
             key={note.id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={cn("flex-1 flex flex-col", bgColorMap[note.color])}
+            className={cn("flex-1 flex flex-col border-t-4 border-l-0", bgColorMap[note.color], borderColorMap[note.color])}
         >
             {/* Toolbar */}
             <EditorToolbar editor={editor} />
