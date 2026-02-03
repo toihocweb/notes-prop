@@ -64,7 +64,7 @@ export default function Home() {
     };
 
     return (
-        <main className="h-screen w-screen flex overflow-hidden bg-neutral-100">
+        <main className="h-screen w-screen flex overflow-hidden bg-neutral-100 dark:bg-neutral-950 transition-colors duration-300">
             <Sidebar
                 notes={notes}
                 selectedNoteId={selectedNoteId}

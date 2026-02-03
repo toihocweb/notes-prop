@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Editor } from '@tiptap/react';
 import { Toggle } from '@/components/ui/toggle';
 import { Separator } from '@/components/ui/separator';
@@ -15,6 +16,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import {
     Bold,
     Italic,
@@ -41,6 +47,10 @@ import {
     ChevronDown,
     Highlighter,
     Download,
+    Plus,
+    Trash2,
+    Rows,
+    Columns,
 } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
@@ -101,14 +111,19 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         }
     };
 
-    const insertTable = () => {
-        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    const [tableSize, setTableSize] = useState({ rows: 2, cols: 3 });
+    const [hoverSize, setHoverSize] = useState({ rows: 0, cols: 0 });
+    const [tablePopoverOpen, setTablePopoverOpen] = useState(false);
+
+    const insertTable = (rows: number, cols: number) => {
+        editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
+        setTablePopoverOpen(false);
     };
 
     const { promptInstall, deferredPrompt } = useInstallPrompt();
 
     return (
-        <div className="flex items-center gap-0.5 p-2 bg-white/90 backdrop-blur-sm border-b border-neutral-200/50 flex-wrap">
+        <div className="flex items-center gap-0.5 p-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50 flex-wrap transition-colors duration-300">
             {/* Undo/Redo */}
             <ToolbarButton
                 icon={<Undo className="w-4 h-4" />}
@@ -273,11 +288,118 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                 label="Chèn hình ảnh"
                 onClick={addImage}
             />
-            <ToolbarButton
-                icon={<Table className="w-4 h-4" />}
-                label="Chèn bảng"
-                onClick={insertTable}
-            />
+            <Popover open={tablePopoverOpen} onOpenChange={setTablePopoverOpen}>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <PopoverTrigger asChild>
+                            <Toggle size="sm" aria-label="Chèn bảng">
+                                <Table className="w-4 h-4" />
+                            </Toggle>
+                        </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Chèn bảng</TooltipContent>
+                </Tooltip>
+                <PopoverContent className="w-auto p-3 bg-white dark:bg-neutral-800" align="start">
+                    <div className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
+                        {hoverSize.rows > 0 ? `${hoverSize.rows} × ${hoverSize.cols}` : `${tableSize.rows} × ${tableSize.cols}`}
+                    </div>
+                    <div
+                        className="grid gap-1"
+                        style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}
+                        onMouseLeave={() => setHoverSize({ rows: 0, cols: 0 })}
+                    >
+                        {Array.from({ length: 6 }, (_, rowIndex) =>
+                            Array.from({ length: 6 }, (_, colIndex) => {
+                                const row = rowIndex + 1;
+                                const col = colIndex + 1;
+                                const isHighlighted = hoverSize.rows > 0
+                                    ? row <= hoverSize.rows && col <= hoverSize.cols
+                                    : row <= tableSize.rows && col <= tableSize.cols;
+                                return (
+                                    <button
+                                        key={`${row}-${col}`}
+                                        className={`w-5 h-5 border rounded transition-colors ${isHighlighted
+                                            ? 'bg-amber-400 border-amber-500'
+                                            : 'bg-neutral-100 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                            }`}
+                                        onMouseEnter={() => setHoverSize({ rows: row, cols: col })}
+                                        onClick={() => insertTable(row, col)}
+                                    />
+                                );
+                            })
+                        )}
+                    </div>
+                </PopoverContent>
+            </Popover>
+
+            {/* Table Editing Controls - compact dropdown */}
+            {editor.isActive('table') && (
+                <>
+                    <Separator orientation="vertical" className="mx-1 h-6" />
+                    <Popover>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <PopoverTrigger asChild>
+                                    <Toggle size="sm" aria-label="Chỉnh sửa bảng" pressed className="bg-amber-50 dark:bg-amber-900/30">
+                                        <Table className="w-4 h-4" />
+                                    </Toggle>
+                                </PopoverTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Chỉnh sửa bảng</TooltipContent>
+                        </Tooltip>
+                        <PopoverContent className="w-auto p-2 bg-white dark:bg-neutral-800" align="start">
+                            <div className="grid grid-cols-2 gap-1">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-3 text-xs justify-start gap-2"
+                                    onClick={() => editor.chain().focus().addRowAfter().run()}
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    Thêm dòng
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-3 text-xs justify-start gap-2"
+                                    onClick={() => editor.chain().focus().addColumnAfter().run()}
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    Thêm cột
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-3 text-xs justify-start gap-2 text-red-500 hover:text-red-600"
+                                    onClick={() => editor.chain().focus().deleteRow().run()}
+                                >
+                                    <Minus className="w-3 h-3" />
+                                    Xóa dòng
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-3 text-xs justify-start gap-2 text-red-500 hover:text-red-600"
+                                    onClick={() => editor.chain().focus().deleteColumn().run()}
+                                >
+                                    <Minus className="w-3 h-3" />
+                                    Xóa cột
+                                </Button>
+                            </div>
+                            <Separator className="my-2" />
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-full px-3 text-xs justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                onClick={() => editor.chain().focus().deleteTable().run()}
+                            >
+                                <Trash2 className="w-3 h-3" />
+                                Xóa toàn bộ bảng
+                            </Button>
+                        </PopoverContent>
+                    </Popover>
+                </>
+            )}
 
             {deferredPrompt && (
                 <div className="ml-auto">

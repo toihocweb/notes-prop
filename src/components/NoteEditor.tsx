@@ -36,22 +36,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 const lowlight = createLowlight(common);
 
 const bgColorMap: Record<NoteColor, string> = {
-    'paper-yellow': 'bg-amber-50/80',
-    'paper-green': 'bg-green-50/80',
-    'paper-pink': 'bg-pink-50/80',
-    'paper-blue': 'bg-blue-50/80',
-    'paper-purple': 'bg-purple-50/80',
-    'paper-white': 'bg-white',
+    'paper-yellow': 'bg-amber-50/80 dark:bg-amber-900/60',
+    'paper-green': 'bg-green-50/80 dark:bg-green-900/60',
+    'paper-pink': 'bg-pink-50/80 dark:bg-pink-900/60',
+    'paper-blue': 'bg-blue-50/80 dark:bg-blue-900/60',
+    'paper-purple': 'bg-purple-50/80 dark:bg-purple-900/60',
+    'paper-white': 'bg-white dark:bg-neutral-800',
 };
 
 const borderColorMap: Record<NoteColor, string> = {
-    'paper-yellow': 'border-amber-400',
-    'paper-green': 'border-green-400',
-    'paper-pink': 'border-pink-400',
-    'paper-blue': 'border-blue-400',
-    'paper-purple': 'border-purple-400',
-    'paper-white': 'border-neutral-300',
+    'paper-yellow': 'border-amber-400 dark:border-amber-400',
+    'paper-green': 'border-green-400 dark:border-green-400',
+    'paper-pink': 'border-pink-400 dark:border-pink-400',
+    'paper-blue': 'border-blue-400 dark:border-blue-400',
+    'paper-purple': 'border-purple-400 dark:border-purple-400',
+    'paper-white': 'border-neutral-300 dark:border-neutral-600',
 };
+
+
 
 interface NoteEditorProps {
     note: Note | null;
@@ -131,7 +133,7 @@ export function NoteEditor({
         content: note?.content || '',
         editorProps: {
             attributes: {
-                class: 'prose prose-neutral max-w-none focus:outline-none min-h-[calc(100vh-200px)] px-12 py-8',
+                class: 'prose prose-neutral dark:prose-invert max-w-none focus:outline-none min-h-[calc(100vh-200px)] px-12 py-8',
             },
         },
         onUpdate: ({ editor }) => {
@@ -172,19 +174,19 @@ export function NoteEditor({
 
     if (!note) {
         return (
-            <div className="flex-1 flex items-center justify-center bg-neutral-50">
+            <div className="flex-1 flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 transition-colors duration-300">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center"
                 >
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 flex items-center justify-center">
                         <svg className="w-12 h-12 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                     </div>
-                    <h2 className="text-xl font-semibold text-neutral-800 mb-2">Chọn một ghi chú</h2>
-                    <p className="text-neutral-500">Hoặc tạo ghi chú mới để bắt đầu</p>
+                    <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 mb-2">Chọn một ghi chú</h2>
+                    <p className="text-neutral-500 dark:text-neutral-400">Hoặc tạo ghi chú mới để bắt đầu</p>
                 </motion.div>
             </div>
         );

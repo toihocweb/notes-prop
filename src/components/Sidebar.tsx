@@ -15,6 +15,7 @@ import {
 import { PopOutButton } from '@/components/PopOutButton';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { ModeToggle } from './ModeToggle';
 
 
 
@@ -98,51 +99,48 @@ function extractPreview(content: string): string {
 }
 
 const colorMap: Record<NoteColor, string> = {
-    'paper-yellow': 'bg-amber-200',
-    'paper-green': 'bg-green-200',
-    'paper-pink': 'bg-pink-200',
-    'paper-blue': 'bg-blue-200',
-    'paper-purple': 'bg-purple-200',
-    'paper-white': 'bg-neutral-200',
+    'paper-yellow': 'bg-amber-200 dark:bg-amber-500',
+    'paper-green': 'bg-green-200 dark:bg-green-500',
+    'paper-pink': 'bg-pink-200 dark:bg-pink-500',
+    'paper-blue': 'bg-blue-200 dark:bg-blue-500',
+    'paper-purple': 'bg-purple-200 dark:bg-purple-500',
+    'paper-white': 'bg-neutral-200 dark:bg-neutral-500',
 };
 
 const bgColorMapLight: Record<NoteColor, string> = {
-    'paper-yellow': 'bg-amber-50',
-    'paper-green': 'bg-green-50',
-    'paper-pink': 'bg-pink-50',
-    'paper-blue': 'bg-blue-50',
-    'paper-purple': 'bg-purple-50',
-    'paper-white': 'bg-neutral-50',
+    'paper-yellow': 'bg-amber-50 dark:bg-amber-900/50',
+    'paper-green': 'bg-green-50 dark:bg-green-900/50',
+    'paper-pink': 'bg-pink-50 dark:bg-pink-900/50',
+    'paper-blue': 'bg-blue-50 dark:bg-blue-900/50',
+    'paper-purple': 'bg-purple-50 dark:bg-purple-900/50',
+    'paper-white': 'bg-neutral-50 dark:bg-neutral-800/70',
 };
-
-
 
 const borderColorMap: Record<NoteColor, string> = {
-    'paper-yellow': 'border-amber-400',
-    'paper-green': 'border-green-400',
-    'paper-pink': 'border-pink-400',
-    'paper-blue': 'border-blue-400',
-    'paper-purple': 'border-purple-400',
-    'paper-white': 'border-neutral-300',
+    'paper-yellow': 'border-amber-400 dark:border-amber-400',
+    'paper-green': 'border-green-400 dark:border-green-400',
+    'paper-pink': 'border-pink-400 dark:border-pink-400',
+    'paper-blue': 'border-blue-400 dark:border-blue-400',
+    'paper-purple': 'border-purple-400 dark:border-purple-400',
+    'paper-white': 'border-neutral-300 dark:border-neutral-500',
 };
 
-
 const strokeColorMap: Record<NoteColor, string> = {
-    'paper-yellow': 'stroke-amber-400',
-    'paper-green': 'stroke-green-400',
-    'paper-pink': 'stroke-pink-400',
-    'paper-blue': 'stroke-blue-400',
-    'paper-purple': 'stroke-purple-400',
-    'paper-white': 'stroke-neutral-300',
+    'paper-yellow': 'stroke-amber-400 dark:stroke-amber-400',
+    'paper-green': 'stroke-green-400 dark:stroke-green-400',
+    'paper-pink': 'stroke-pink-400 dark:stroke-pink-400',
+    'paper-blue': 'stroke-blue-400 dark:stroke-blue-400',
+    'paper-purple': 'stroke-purple-400 dark:stroke-purple-400',
+    'paper-white': 'stroke-neutral-300 dark:stroke-neutral-500',
 };
 
 const fillColorMap: Record<NoteColor, string> = {
-    'paper-yellow': 'fill-amber-50',
-    'paper-green': 'fill-green-50',
-    'paper-pink': 'fill-pink-50',
-    'paper-blue': 'fill-blue-50',
-    'paper-purple': 'fill-purple-50',
-    'paper-white': 'fill-neutral-50',
+    'paper-yellow': 'fill-amber-50 dark:fill-amber-900/50',
+    'paper-green': 'fill-green-50 dark:fill-green-900/50',
+    'paper-pink': 'fill-pink-50 dark:fill-pink-900/50',
+    'paper-blue': 'fill-blue-50 dark:fill-blue-900/50',
+    'paper-purple': 'fill-purple-50 dark:fill-purple-900/50',
+    'paper-white': 'fill-neutral-50 dark:fill-neutral-800/70',
 };
 
 const separatorColorMap: Record<NoteColor, string> = {
@@ -207,15 +205,15 @@ export function Sidebar({
     const [activeTab, setActiveTab] = useState<'all' | 'pinned'>('all');
 
     return (
-        <div className="w-72 h-full bg-white/80 backdrop-blur-xl flex flex-col relative group/sidebar">
+        <div className="w-72 h-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl flex flex-col relative group/sidebar border-r border-transparent dark:border-neutral-800 transition-colors duration-300">
             {/* Fake Border Line */}
             <div className={cn(
                 "absolute right-0 top-0 bottom-0 w-[2px] transition-colors duration-300 z-20 pointer-events-none",
-                selectedNote ? separatorColorMap[selectedNote.color] : "bg-neutral-200"
+                selectedNote ? separatorColorMap[selectedNote.color] : "bg-neutral-200 dark:bg-neutral-800"
             )} />
 
             {/* Header */}
-            <div className="p-4 pb-2 border-b border-neutral-200/50 relative z-10">
+            <div className="p-4 pb-2 border-b border-neutral-200/50 dark:border-neutral-800/50 relative z-10 transition-colors duration-300">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <img
@@ -223,27 +221,30 @@ export function Sidebar({
                             alt="Notes Pro"
                             className="w-8 h-8 rounded-lg shadow-md"
                         />
-                        <span className="font-semibold text-neutral-800">Notes Pro</span>
+                        <span className="font-semibold text-neutral-800 dark:text-neutral-100">Notes Pro</span>
                     </div>
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => onCreateNote()}
-                        className="hover:bg-amber-50"
-                    >
-                        <Plus className="w-5 h-5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <ModeToggle />
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => onCreateNote()}
+                            className="hover:bg-amber-50 dark:hover:bg-amber-900/20 dark:text-neutral-200"
+                        >
+                            <Plus className="w-5 h-5" />
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex p-1 mb-3 bg-neutral-100/80 rounded-lg">
+                <div className="flex p-1 mb-3 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg transition-colors duration-300">
                     <button
                         onClick={() => setActiveTab('all')}
                         className={cn(
                             "flex-1 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                             activeTab === 'all'
-                                ? "bg-white text-neutral-800 shadow-sm"
-                                : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                                ? "bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 shadow-sm"
+                                : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-white/50 dark:hover:bg-neutral-700/50"
                         )}
                     >
                         Tất cả
@@ -253,8 +254,8 @@ export function Sidebar({
                         className={cn(
                             "flex-1 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                             activeTab === 'pinned'
-                                ? "bg-white text-neutral-800 shadow-sm"
-                                : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                                ? "bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 shadow-sm"
+                                : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-white/50 dark:hover:bg-neutral-700/50"
                         )}
                     >
                         Ghim
@@ -269,7 +270,7 @@ export function Sidebar({
                         placeholder="Tìm kiếm ghi chú..."
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-neutral-100/80 rounded-xl text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-neutral-100/80 dark:bg-neutral-800/80 dark:text-neutral-100 rounded-xl text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
                     />
                 </div>
             </div>
@@ -327,16 +328,28 @@ export function Sidebar({
                         >
 
                             {selectedNoteId === note.id && (
-                                <motion.div
-                                    layoutId="active-note-border"
-                                    className={cn(
-                                        "absolute inset-0 rounded-l-xl rounded-r-none border-2 border-r-0 z-0 pointer-events-none -mr-[2px] bg-white",
-                                        borderColorMap[note.color],
-                                        bgColorMapLight[note.color]
-                                    )}
-                                    initial={false}
-                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                />
+                                <>
+                                    <motion.div
+                                        layoutId="active-note-border"
+                                        className={cn(
+                                            "absolute inset-0 rounded-xl border-2 z-0 pointer-events-none",
+                                            borderColorMap[note.color],
+                                            bgColorMapLight[note.color]
+                                        )}
+                                        initial={false}
+                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    />
+                                    {/* Right side extension to connect with editor */}
+                                    <motion.div
+                                        layoutId="active-note-extension"
+                                        className={cn(
+                                            "absolute top-[10px] bottom-[10px] -right-[14px] w-4 border-y-2 border-r-2 rounded-r-xl z-0 pointer-events-none bg-white dark:bg-neutral-950",
+                                            borderColorMap[note.color]
+                                        )}
+                                        initial={false}
+                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    />
+                                </>
                             )}
                             {/* Color indicator */}
                             <div className={cn(
@@ -351,42 +364,42 @@ export function Sidebar({
                                     {note.isPinned && (
                                         <Pin className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
                                     )}
-                                    <h3 className="font-medium text-sm text-neutral-800 truncate">
+                                    <h3 className="font-medium text-sm text-neutral-800 dark:text-neutral-100 truncate">
                                         {extractTitle(note)}
                                     </h3>
                                 </div>
                                 {extractPreview(note.content) && (
-                                    <p className="text-xs text-neutral-400 truncate mb-1">
+                                    <p className="text-xs text-neutral-400 dark:text-neutral-400 truncate mb-1">
                                         {extractPreview(note.content)}
                                     </p>
                                 )}
-                                <span className="text-[10px] text-neutral-300">
+                                <span className="text-[10px] text-neutral-300 dark:text-neutral-500">
                                     {formatDate(note.updatedAt)}
                                 </span>
                             </div>
                         </div>
                     </ContextMenuTrigger>
-                    <ContextMenuContent className="w-48 bg-white" alignOffset={5}>
+                    <ContextMenuContent className="w-48 bg-white dark:bg-neutral-800 dark:border-neutral-700" alignOffset={5}>
                         <ContextMenuItem
                             onClick={() => onTogglePin(note.id)}
-                            className="focus:bg-neutral-100"
+                            className="focus:bg-neutral-100 dark:focus:bg-neutral-700 dark:text-neutral-200"
                         >
                             {note.isPinned ? "Bỏ ghim" : "Ghim ghi chú"}
                         </ContextMenuItem>
                         <ContextMenuItem
                             onClick={() => popOut({ noteId: note.id, noteTitle: extractTitle(note), noteColor: note.color, initialContent: note.content })}
-                            className="focus:bg-neutral-100"
+                            className="focus:bg-neutral-100 dark:focus:bg-neutral-700 dark:text-neutral-200"
                         >
                             Mở cửa sổ nổi
                         </ContextMenuItem>
                         <ContextMenuSub>
-                            <ContextMenuSubTrigger className="focus:bg-neutral-100">Đổi màu</ContextMenuSubTrigger>
-                            <ContextMenuSubContent className="w-48 bg-white">
+                            <ContextMenuSubTrigger className="focus:bg-neutral-100 dark:focus:bg-neutral-700 dark:text-neutral-200">Đổi màu</ContextMenuSubTrigger>
+                            <ContextMenuSubContent className="w-48 bg-white dark:bg-neutral-800 dark:border-neutral-700">
                                 {THEMES.map((theme) => (
                                     <ContextMenuItem
                                         key={theme.value}
                                         onClick={() => onChangeNoteColor(note.id, theme.value)}
-                                        className="focus:bg-neutral-100"
+                                        className="focus:bg-neutral-100 dark:focus:bg-neutral-700 dark:text-neutral-200"
                                     >
                                         <div className={cn("w-4 h-4 rounded-full mr-2", colorMap[theme.value])} />
                                         {theme.name}
@@ -394,9 +407,9 @@ export function Sidebar({
                                 ))}
                             </ContextMenuSubContent>
                         </ContextMenuSub>
-                        <ContextMenuSeparator />
+                        <ContextMenuSeparator className="dark:bg-neutral-700" />
                         <ContextMenuItem
-                            className="text-red-500 focus:text-red-500 focus:bg-red-50"
+                            className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-900/30"
                             onClick={() => onDeleteNote(note.id)}
                         >
                             Xóa ghi chú

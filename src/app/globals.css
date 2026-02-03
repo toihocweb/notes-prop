@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 }
@@ -41,6 +43,10 @@
     margin-bottom: 1rem;
 }
 
+.dark .ProseMirror h1 {
+    color: #fafafa;
+}
+
 .ProseMirror h2 {
     font-size: 1.5rem;
     line-height: 2rem;
@@ -48,6 +54,10 @@
     color: #262626;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
+}
+
+.dark .ProseMirror h2 {
+    color: #f5f5f5;
 }
 
 .ProseMirror h3 {
@@ -59,10 +69,18 @@
     margin-bottom: 0.5rem;
 }
 
+.dark .ProseMirror h3 {
+    color: #e5e5e5;
+}
+
 .ProseMirror p {
     font-size: 1rem;
     line-height: 1.75;
     color: #404040;
+}
+
+.dark .ProseMirror p {
+    color: #d4d4d4;
 }
 
 .ProseMirror ul,
@@ -82,6 +100,11 @@
 
 .ProseMirror li {
     margin-bottom: 0.25rem;
+    color: #404040;
+}
+
+.dark .ProseMirror li {
+    color: #d4d4d4;
 }
 
 .ProseMirror ul[data-type="taskList"] {
@@ -121,6 +144,10 @@
     color: #a3a3a3;
 }
 
+.dark .ProseMirror ul[data-type="taskList"] li[data-checked="true"]>div {
+    color: #737373;
+}
+
 .ProseMirror blockquote {
     padding-left: 1rem;
     border-left: 4px solid #fcd34d;
@@ -130,6 +157,11 @@
     margin-bottom: 1rem;
 }
 
+.dark .ProseMirror blockquote {
+    color: #a3a3a3;
+    border-left-color: #f59e0b;
+}
+
 .ProseMirror code {
     background-color: #f5f5f5;
     color: #262626;
@@ -137,6 +169,11 @@
     border-radius: 0.25rem;
     font-size: 0.875rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.dark .ProseMirror code {
+    background-color: #404040;
+    color: #fafafa;
 }
 
 .ProseMirror pre {
@@ -162,6 +199,10 @@
     margin-bottom: 2rem;
 }
 
+.dark .ProseMirror hr {
+    border-color: #525252;
+}
+
 .ProseMirror img {
     max-width: 100%;
     height: auto;
@@ -184,12 +225,23 @@
     border: 1px solid #d4d4d4;
     padding: 0.5rem;
     min-width: 100px;
+    color: #404040;
+}
+
+.dark .ProseMirror table td,
+.dark .ProseMirror table th {
+    border-color: #525252;
+    color: #d4d4d4;
 }
 
 .ProseMirror table th {
     background-color: #f5f5f5;
     font-weight: 600;
     text-align: left;
+}
+
+.dark .ProseMirror table th {
+    background-color: #404040;
 }
 
 .ProseMirror .ProseMirror-selectednode {
@@ -203,6 +255,10 @@
     height: 0;
     pointer-events: none;
     content: attr(data-placeholder);
+}
+
+.dark .ProseMirror p.is-editor-empty:first-child::before {
+    color: #737373;
 }
 
 /* Animations */

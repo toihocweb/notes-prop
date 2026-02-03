@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const outfit = Outfit({
     subsets: ["latin"],
@@ -34,7 +35,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="vi" className={outfit.variable}>
+        <html lang="vi" className={outfit.variable} suppressHydrationWarning>
             <head>
                 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
                 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
@@ -43,9 +44,16 @@ export default function RootLayout({
                 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
             </head>
             <body className="font-sans">
-                <TooltipProvider delayDuration={200}>
-                    {children}
-                </TooltipProvider>
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <TooltipProvider delayDuration={200}>
+                        {children}
+                    </TooltipProvider>
+                </ThemeProvider>
             </body>
         </html>
     );
