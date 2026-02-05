@@ -299,7 +299,7 @@ export function Sidebar({
                                 <p className="text-sm text-neutral-400 mb-4">
                                     {'Chưa có ghi chú nào'}
                                 </p>
-                                <Button size="sm" onClick={() => onCreateNote({ isPinned: activeTab === 'pinned' })}>
+                                <Button size="sm" onClick={() => onCreateNote({ isPinned: false })}>
                                     <Plus className="w-4 h-4 mr-1" />
                                     Tạo ghi chú
                                 </Button>
