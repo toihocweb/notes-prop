@@ -51,6 +51,7 @@ import {
     Trash2,
     Rows,
     Columns,
+    Eraser,
 } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
@@ -207,6 +208,11 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                 label="Code"
                 isActive={editor.isActive('code')}
                 onClick={() => editor.chain().focus().toggleCode().run()}
+            />
+            <ToolbarButton
+                icon={<Eraser className="w-4 h-4" />}
+                label="Xóa định dạng"
+                onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
             />
 
             <Separator orientation="vertical" className="mx-1 h-6" />
