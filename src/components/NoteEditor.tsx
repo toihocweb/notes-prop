@@ -300,8 +300,11 @@ export function NoteEditor({
             <EditorToolbar editor={editor} />
 
             {/* Editor */}
+            {/* Editor */}
             <div className="flex-1 overflow-auto">
-                <EditorContent editor={editor} />
+                <div className="min-w-[650px] h-full pb-12">
+                    <EditorContent editor={editor} className="h-full" />
+                </div>
             </div>
 
 

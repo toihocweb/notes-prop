@@ -8,8 +8,8 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -17,12 +17,24 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #d4d4d4;
-    border-radius: 4px;
+    background: #a3a3a3;
+    /* Darker grey by default */
+    border-radius: 5px;
+    border: 2px solid transparent;
+    /* adds padding around thumb */
+    background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a3a3a3;
+    background: #737373;
+    /* Even darker on hover */
+    border: 2px solid transparent;
+    background-clip: content-box;
+    cursor: pointer;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 /* TipTap Editor Styles */
