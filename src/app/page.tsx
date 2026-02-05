@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { useNotes } from '@/hooks/useNotes';
 import { Sidebar } from '@/components/Sidebar';
 import { NoteEditor } from '@/components/NoteEditor';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
 
 export default function Home() {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const {
         notes,
         selectedNote,
@@ -65,18 +68,44 @@ export default function Home() {
 
     return (
         <main className="h-screen w-screen flex overflow-hidden bg-neutral-100 dark:bg-neutral-950 transition-colors duration-300">
-            <Sidebar
-                notes={notes}
-                selectedNoteId={selectedNoteId}
-                searchQuery={searchQuery}
-                onSelectNote={setSelectedNoteId}
-                onCreateNote={createNote}
-                onDeleteNote={deleteNote}
-                onTogglePin={togglePin}
-                onSearchChange={setSearchQuery}
-                onChangeNoteColor={handleChangeNoteColor}
-                onReorderNotes={reorderNotes}
-            />
+            {/* Mobile sidebar toggle button */}
+            <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-neutral-800 shadow-lg border border-neutral-200 dark:border-neutral-700"
+            >
+                {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+
+            {/* Overlay for mobile */}
+            {isSidebarOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-black/30 z-30"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar wrapper */}
+            <div className={`
+                fixed md:relative z-40 h-full
+                transition-transform duration-300 ease-in-out
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}>
+                <Sidebar
+                    notes={notes}
+                    selectedNoteId={selectedNoteId}
+                    searchQuery={searchQuery}
+                    onSelectNote={(id) => {
+                        setSelectedNoteId(id);
+                        setIsSidebarOpen(false); // Close sidebar on mobile after selecting
+                    }}
+                    onCreateNote={createNote}
+                    onDeleteNote={deleteNote}
+                    onTogglePin={togglePin}
+                    onSearchChange={setSearchQuery}
+                    onChangeNoteColor={handleChangeNoteColor}
+                    onReorderNotes={reorderNotes}
+                />
+            </div>
 
             <AnimatePresence mode="wait">
                 <NoteEditor

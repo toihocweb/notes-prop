@@ -294,14 +294,13 @@ export function NoteEditor({
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={cn("relative -left-0.5 flex-1 flex flex-col border-t-4 border-l-0", bgColorMap[note.color], borderColorMap[note.color])}
+            className={cn("flex-1 flex flex-col border-t-4 border-l-0 min-w-0 overflow-x-auto", bgColorMap[note.color], borderColorMap[note.color])}
         >
             {/* Toolbar */}
             <EditorToolbar editor={editor} />
 
             {/* Editor */}
-            {/* Editor */}
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-x-auto overflow-y-auto min-w-0">
                 <div className="min-w-[650px] h-full pb-12">
                     <EditorContent editor={editor} className="h-full" />
                 </div>

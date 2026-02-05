@@ -205,7 +205,7 @@ export function Sidebar({
     const [activeTab, setActiveTab] = useState<'all' | 'pinned'>('all');
 
     return (
-        <div className="w-72 h-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl flex flex-col relative group/sidebar border-r border-transparent dark:border-neutral-800 transition-colors duration-300">
+        <div className="w-72 shrink-0 h-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl flex flex-col relative group/sidebar border-r border-transparent dark:border-neutral-800 transition-colors duration-300">
             {/* Fake Border Line */}
             <div className={cn(
                 "absolute right-0 top-0 bottom-0 w-[2px] transition-colors duration-300 z-20 pointer-events-none",
