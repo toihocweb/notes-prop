@@ -46,7 +46,7 @@ interface SidebarProps {
     selectedNoteId: string | null;
     searchQuery: string;
     onSelectNote: (id: string) => void;
-    onCreateNote: (color?: NoteColor) => void;
+    onCreateNote: (options?: { color?: NoteColor; isPinned?: boolean }) => void;
     onDeleteNote: (id: string) => void;
     onTogglePin: (id: string) => void;
     onSearchChange: (query: string) => void;
@@ -228,7 +228,7 @@ export function Sidebar({
                         <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => onCreateNote()}
+                            onClick={() => onCreateNote({ isPinned: activeTab === 'pinned' })}
                             className="hover:bg-amber-50 dark:hover:bg-amber-900/20 dark:text-neutral-200"
                         >
                             <Plus className="w-5 h-5" />
@@ -239,7 +239,11 @@ export function Sidebar({
                 {/* Tabs */}
                 <div className="flex p-1 mb-3 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-lg transition-colors duration-300">
                     <button
-                        onClick={() => setActiveTab('all')}
+                        onClick={() => {
+                            setActiveTab('all');
+                            const firstUnpinned = notes.find(n => !n.isPinned);
+                            if (firstUnpinned) onSelectNote(firstUnpinned.id);
+                        }}
                         className={cn(
                             "flex-1 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                             activeTab === 'all'
@@ -250,7 +254,11 @@ export function Sidebar({
                         Tất cả
                     </button>
                     <button
-                        onClick={() => setActiveTab('pinned')}
+                        onClick={() => {
+                            setActiveTab('pinned');
+                            const firstPinned = notes.find(n => n.isPinned);
+                            if (firstPinned) onSelectNote(firstPinned.id);
+                        }}
                         className={cn(
                             "flex-1 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                             activeTab === 'pinned'
@@ -291,7 +299,7 @@ export function Sidebar({
                                 <p className="text-sm text-neutral-400 mb-4">
                                     {'Chưa có ghi chú nào'}
                                 </p>
-                                <Button size="sm" onClick={() => onCreateNote()}>
+                                <Button size="sm" onClick={() => onCreateNote({ isPinned: activeTab === 'pinned' })}>
                                     <Plus className="w-4 h-4 mr-1" />
                                     Tạo ghi chú
                                 </Button>
@@ -301,8 +309,8 @@ export function Sidebar({
                         )}
                     </AnimatePresence>
                 </div>
-            </ScrollArea>
-        </div>
+            </ScrollArea >
+        </div >
     );
 
     function renderNoteItem(note: Note, index: number, isDragEnabled: boolean) {
@@ -368,11 +376,9 @@ export function Sidebar({
                                         {extractTitle(note)}
                                     </h3>
                                 </div>
-                                {extractPreview(note.content) && (
-                                    <p className="text-xs text-neutral-400 dark:text-neutral-400 truncate mb-1">
-                                        {extractPreview(note.content)}
-                                    </p>
-                                )}
+                                <p className="text-xs text-neutral-400 dark:text-neutral-400 truncate mb-1">
+                                    {extractPreview(note.content) || "Không có nội dung"}
+                                </p>
                                 <span className="text-[10px] text-neutral-300 dark:text-neutral-500">
                                     {formatDate(note.updatedAt)}
                                 </span>

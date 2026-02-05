@@ -36,7 +36,8 @@ export function useNotes() {
         }
     }, [notes, isLoaded]);
 
-    const createNote = useCallback((color: NoteColor = 'paper-yellow') => {
+    const createNote = useCallback((options?: { color?: NoteColor; isPinned?: boolean }) => {
+        const { color = 'paper-yellow', isPinned = false } = options || {};
         const now = new Date().toISOString();
         const newNote: Note = {
             id: uuidv4(),
@@ -45,7 +46,7 @@ export function useNotes() {
             createdAt: now,
             updatedAt: now,
             color,
-            isPinned: false,
+            isPinned,
             order: 0,
         };
         setNotes(prev => [newNote, ...prev]);

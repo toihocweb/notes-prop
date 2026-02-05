@@ -32,6 +32,11 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import Mention from '@tiptap/extension-mention';
+import { ReactRenderer } from '@tiptap/react';
+import tippy from 'tippy.js';
+import { WikiLinkList, WikiLinkListRef } from './WikiLinkList';
+import { ResizableImage } from './extensions/ResizableImage';
 
 const lowlight = createLowlight(common);
 
@@ -57,20 +62,34 @@ const borderColorMap: Record<NoteColor, string> = {
 
 interface NoteEditorProps {
     note: Note | null;
+    notes: Note[];
     onUpdate: (updates: Partial<Omit<Note, 'id' | 'createdAt'>>) => void;
     onDelete: () => void;
     onTogglePin: () => void;
     onChangeColor: (color: NoteColor) => void;
+    onSelectNote: (id: string) => void;
 }
 
 export function NoteEditor({
     note,
+    notes,
     onUpdate,
     onDelete,
     onTogglePin,
-    onChangeColor
+    onChangeColor,
+    onSelectNote
 }: NoteEditorProps) {
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const notesRef = useRef(notes);
+    const onSelectNoteRef = useRef(onSelectNote);
+
+    useEffect(() => {
+        notesRef.current = notes;
+    }, [notes]);
+
+    useEffect(() => {
+        onSelectNoteRef.current = onSelectNote;
+    }, [onSelectNote]);
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -85,9 +104,9 @@ export function NoteEditor({
                     class: 'text-amber-600 underline cursor-pointer hover:text-amber-700',
                 },
             }),
-            Image.configure({
+            ResizableImage.configure({
                 HTMLAttributes: {
-                    class: 'max-w-full h-auto rounded-lg shadow-md my-4',
+                    class: 'rounded-lg shadow-md my-4',
                 },
             }),
             Placeholder.configure({
@@ -129,12 +148,90 @@ export function NoteEditor({
                     class: 'bg-neutral-900 text-neutral-100 rounded-lg p-4 my-4 font-mono text-sm overflow-x-auto',
                 },
             }),
+            Mention.configure({
+                HTMLAttributes: {
+                    class: 'wiki-link inline-flex items-center gap-1 text-violet-700 dark:text-violet-400 font-medium cursor-pointer no-underline bg-violet-100 dark:bg-violet-900/50 px-2 py-0.5 rounded-full border border-violet-300 dark:border-violet-700 hover:bg-violet-200 dark:hover:bg-violet-800/60 transition-colors text-sm',
+                },
+                renderLabel({ node }) {
+                    return `📒 ${node.attrs.label ?? node.attrs.id}`;
+                },
+                suggestion: {
+                    char: '[[',
+                    allowSpaces: true,
+                    items: ({ query }) => {
+                        return notesRef.current
+                            .filter(item => item.title.toLowerCase().includes(query.toLowerCase()))
+                            .slice(0, 5);
+                    },
+                    render: () => {
+                        let component: ReactRenderer<WikiLinkListRef> | null = null;
+                        let popup: any | null = null;
+
+                        return {
+                            onStart: (props) => {
+                                component = new ReactRenderer(WikiLinkList, {
+                                    props,
+                                    editor: props.editor,
+                                });
+
+                                if (!props.clientRect) {
+                                    return;
+                                }
+
+                                popup = tippy('body', {
+                                    getReferenceClientRect: props.clientRect as any,
+                                    appendTo: () => document.body,
+                                    content: component.element,
+                                    showOnCreate: true,
+                                    interactive: true,
+                                    trigger: 'manual',
+                                    placement: 'bottom-start',
+                                });
+                            },
+                            onUpdate(props) {
+                                component?.updateProps(props);
+
+                                if (!props.clientRect) {
+                                    return;
+                                }
+
+                                popup[0].setProps({
+                                    getReferenceClientRect: props.clientRect,
+                                });
+                            },
+                            onKeyDown(props) {
+                                if (props.event.key === 'Escape') {
+                                    popup[0].hide();
+                                    return true;
+                                }
+
+                                return component?.ref?.onKeyDown(props) || false;
+                            },
+                            onExit() {
+                                popup[0].destroy();
+                                component?.destroy();
+                            },
+                        };
+                    },
+                },
+            }),
         ],
         content: note?.content || '',
         editorProps: {
             attributes: {
                 class: 'prose prose-neutral dark:prose-invert max-w-none focus:outline-none min-h-[calc(100vh-200px)] px-12 py-8',
             },
+            handleClick: (view, pos, event) => {
+                const target = event.target as HTMLElement;
+                if (target.closest('.wiki-link')) {
+                    const id = target.getAttribute('data-id');
+                    if (id) {
+                        onSelectNoteRef.current(id);
+                        return true;
+                    }
+                }
+                return false;
+            }
         },
         onUpdate: ({ editor }) => {
             if (debounceRef.current) {
@@ -167,7 +264,8 @@ export function NoteEditor({
         if (editor && note) {
             const currentContent = editor.getHTML();
             if (currentContent !== note.content) {
-                editor.commands.setContent(note.content);
+                // emitUpdate: false prevents triggering onUpdate callback
+                editor.commands.setContent(note.content, { emitUpdate: false });
             }
         }
     }, [note?.id, editor]);
@@ -194,10 +292,9 @@ export function NoteEditor({
 
     return (
         <motion.div
-            key={note.id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={cn("flex-1 flex flex-col border-t-4 border-l-0", bgColorMap[note.color], borderColorMap[note.color])}
+            className={cn("relative -left-0.5 flex-1 flex flex-col border-t-4 border-l-0", bgColorMap[note.color], borderColorMap[note.color])}
         >
             {/* Toolbar */}
             <EditorToolbar editor={editor} />

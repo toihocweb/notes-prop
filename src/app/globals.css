@@ -245,8 +245,8 @@
 }
 
 .ProseMirror .ProseMirror-selectednode {
-    outline: 2px solid #f59e0b;
-    outline-offset: 2px;
+    outline: none !important;
+    outline-offset: 0;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {

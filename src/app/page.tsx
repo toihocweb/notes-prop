@@ -80,12 +80,13 @@ export default function Home() {
 
             <AnimatePresence mode="wait">
                 <NoteEditor
-                    key={selectedNoteId || 'empty'}
                     note={selectedNote}
+                    notes={notes}
                     onUpdate={handleUpdateNote}
                     onDelete={handleDeleteNote}
                     onTogglePin={handleTogglePin}
                     onChangeColor={(color) => selectedNoteId && handleChangeNoteColor(selectedNoteId, color)}
+                    onSelectNote={setSelectedNoteId}
                 />
             </AnimatePresence>
 
