@@ -183,7 +183,7 @@ const ringColorMap: Record<NoteColor, string> = {
 
 
 // Add useState to import
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // ... rest of imports
 
 // ... existing code ...
@@ -203,6 +203,13 @@ export function Sidebar({
     const selectedNote = notes.find(n => n.id === selectedNoteId);
     const { popOut } = usePopOut();
     const [activeTab, setActiveTab] = useState<'all' | 'pinned'>('all');
+
+    // Auto-switch tab based on selected note's pinned status
+    useEffect(() => {
+        if (selectedNote) {
+            setActiveTab(selectedNote.isPinned ? 'pinned' : 'all');
+        }
+    }, [selectedNoteId, selectedNote?.isPinned]);
 
     return (
         <div className="w-72 shrink-0 h-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl flex flex-col relative group/sidebar border-r border-transparent dark:border-neutral-800 transition-colors duration-300">
