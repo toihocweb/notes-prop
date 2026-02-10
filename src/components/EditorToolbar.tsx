@@ -140,7 +140,7 @@ export function EditorToolbar({
     const { promptInstall, deferredPrompt } = useInstallPrompt();
 
     return (
-        <div className="sticky top-0 z-10 flex items-center gap-0.5 p-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50 flex-wrap transition-colors duration-300">
+        <div className="sticky top-0 z-50 flex items-center gap-0.5 p-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50 flex-wrap transition-colors duration-300">
             {/* Undo/Redo */}
             <ToolbarButton
                 icon={<Undo className="w-4 h-4" />}
