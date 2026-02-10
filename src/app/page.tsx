@@ -10,6 +10,7 @@ import { Menu, X } from 'lucide-react';
 
 export default function Home() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     const {
         notes,
         selectedNote,
@@ -44,26 +45,31 @@ export default function Home() {
         );
     }
 
-    const handleUpdateNote = (updates: Parameters<typeof updateNote>[1]) => {
-        if (selectedNoteId) {
-            updateNote(selectedNoteId, updates);
+    const handleSelectNote = (id: string) => {
+        setSelectedNoteId(id);
+        if (window.innerWidth < 1024) {
+            setIsSidebarOpen(false);
         }
     };
 
-    const handleDeleteNote = () => {
-        if (selectedNoteId) {
-            deleteNote(selectedNoteId);
-        }
-    };
-
-    const handleTogglePin = () => {
-        if (selectedNoteId) {
-            togglePin(selectedNoteId);
-        }
+    const handleNoteUpdate = (id: string, updates: Parameters<typeof updateNote>[1]) => {
+        updateNote(id, updates);
     };
 
     const handleChangeNoteColor = (id: string, color: Parameters<typeof updateNote>[1]['color']) => {
         updateNote(id, { color });
+    };
+
+    const handleUpdate = (updates: Parameters<typeof updateNote>[1]) => {
+        if (selectedNoteId) handleNoteUpdate(selectedNoteId, updates);
+    };
+
+    const handleDelete = () => {
+        if (selectedNoteId) deleteNote(selectedNoteId);
+    };
+
+    const handleTogglePin = () => {
+        if (selectedNoteId) togglePin(selectedNoteId);
     };
 
     return (
@@ -86,18 +92,15 @@ export default function Home() {
 
             {/* Sidebar wrapper */}
             <div className={`
-                fixed md:relative z-40 h-full
-                transition-transform duration-300 ease-in-out
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-            `}>
+                    fixed md:relative z-40 h-full
+                    transition-transform duration-300 ease-in-out
+                    ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                `}>
                 <Sidebar
                     notes={notes}
                     selectedNoteId={selectedNoteId}
                     searchQuery={searchQuery}
-                    onSelectNote={(id) => {
-                        setSelectedNoteId(id);
-                        setIsSidebarOpen(false); // Close sidebar on mobile after selecting
-                    }}
+                    onSelectNote={handleSelectNote}
                     onCreateNote={createNote}
                     onDeleteNote={deleteNote}
                     onTogglePin={togglePin}
@@ -111,11 +114,11 @@ export default function Home() {
                 <NoteEditor
                     note={selectedNote}
                     notes={notes}
-                    onUpdate={handleUpdateNote}
-                    onDelete={handleDeleteNote}
+                    onUpdate={handleUpdate}
+                    onDelete={handleDelete}
                     onTogglePin={handleTogglePin}
                     onChangeColor={(color) => selectedNoteId && handleChangeNoteColor(selectedNoteId, color)}
-                    onSelectNote={setSelectedNoteId}
+                    onSelectNote={handleSelectNote}
                 />
             </AnimatePresence>
 

@@ -52,6 +52,9 @@ import {
     Rows,
     Columns,
     Eraser,
+    ArrowUpToLine,
+    ArrowDownToLine,
+    FoldVertical,
 } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
@@ -402,6 +405,37 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                                 <Trash2 className="w-3 h-3" />
                                 Xóa toàn bộ bảng
                             </Button>
+
+                            <Separator className="my-2" />
+                            <div className="grid grid-cols-3 gap-1">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-0 text-xs justify-center"
+                                    title="Căn trên"
+                                    onClick={() => editor.chain().focus().setCellAttribute('verticalAlign', 'top').run()}
+                                >
+                                    <ArrowUpToLine className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-0 text-xs justify-center"
+                                    title="Căn giữa (dọc)"
+                                    onClick={() => editor.chain().focus().setCellAttribute('verticalAlign', 'middle').run()}
+                                >
+                                    <FoldVertical className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-0 text-xs justify-center"
+                                    title="Căn dưới"
+                                    onClick={() => editor.chain().focus().setCellAttribute('verticalAlign', 'bottom').run()}
+                                >
+                                    <ArrowDownToLine className="w-4 h-4" />
+                                </Button>
+                            </div>
                         </PopoverContent>
                     </Popover>
                 </>

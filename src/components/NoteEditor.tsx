@@ -16,7 +16,7 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Note, NoteColor, THEMES } from '@/types/note';
 import { EditorToolbar } from './EditorToolbar';
 import { cn } from '@/lib/utils';
@@ -58,8 +58,6 @@ const borderColorMap: Record<NoteColor, string> = {
     'paper-white': 'border-neutral-300 dark:border-neutral-600',
 };
 
-
-
 interface NoteEditorProps {
     note: Note | null;
     notes: Note[];
@@ -70,6 +68,168 @@ interface NoteEditorProps {
     onSelectNote: (id: string) => void;
 }
 
+// Reusable editor configuration
+const getEditorExtensions = (notes: Note[], onSelectNote: (id: string) => void) => [
+    StarterKit.configure({
+        codeBlock: false,
+    }),
+    Underline,
+    Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+            class: 'text-amber-600 underline cursor-pointer hover:text-amber-700',
+        },
+    }),
+    ResizableImage.configure({
+        HTMLAttributes: {
+            class: 'rounded-lg shadow-md my-4',
+        },
+    }),
+    Placeholder.configure({
+        placeholder: 'Bắt đầu viết ghi chú của bạn...',
+    }),
+    TaskList,
+    TaskItem.configure({
+        nested: true,
+    }),
+    TextAlign.configure({
+        types: ['heading', 'paragraph'],
+    }),
+    Highlight.configure({
+        multicolor: false,
+        HTMLAttributes: {
+            class: 'bg-yellow-200 rounded px-0.5',
+        },
+    }),
+    Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+            class: 'border-collapse table-auto w-full my-4',
+        },
+    }),
+    TableRow,
+    TableCell.extend({
+        addAttributes() {
+            return {
+                ...this.parent?.(),
+                verticalAlign: {
+                    default: null,
+                    parseHTML: element => element.style.verticalAlign || element.getAttribute('vertical-align'),
+                    renderHTML: attributes => {
+                        if (!attributes.verticalAlign) return {};
+                        return {
+                            style: `vertical-align: ${attributes.verticalAlign}`,
+                        }
+                    },
+                },
+            }
+        },
+    }).configure({
+        HTMLAttributes: {
+            class: 'border border-neutral-300 p-2',
+        },
+    }),
+    TableHeader.extend({
+        addAttributes() {
+            return {
+                ...this.parent?.(),
+                verticalAlign: {
+                    default: null,
+                    parseHTML: element => element.style.verticalAlign || element.getAttribute('vertical-align'),
+                    renderHTML: attributes => {
+                        if (!attributes.verticalAlign) return {};
+                        return {
+                            style: `vertical-align: ${attributes.verticalAlign}`,
+                        }
+                    },
+                },
+            }
+        },
+    }).configure({
+        HTMLAttributes: {
+            class: 'border border-neutral-300 p-2 bg-neutral-100 font-semibold',
+        },
+    }),
+    CodeBlockLowlight.configure({
+        lowlight,
+        HTMLAttributes: {
+            class: 'bg-neutral-900 text-neutral-100 rounded-lg p-4 my-4 font-mono text-sm overflow-x-auto',
+        },
+    }),
+    Mention.configure({
+        HTMLAttributes: {
+            class: 'wiki-link inline-flex items-center gap-1 text-violet-700 dark:text-violet-400 font-medium cursor-pointer no-underline bg-violet-100 dark:bg-violet-900/50 px-2 py-0.5 rounded-full border border-violet-300 dark:border-violet-700 hover:bg-violet-200 dark:hover:bg-violet-800/60 transition-colors text-sm',
+        },
+        renderLabel({ node }) {
+            return `📒 ${node.attrs.label ?? node.attrs.id}`;
+        },
+        suggestion: {
+            char: '[[',
+            allowSpaces: true,
+            items: ({ query }) => {
+                return notes
+                    .filter(item => item.title.toLowerCase().includes(query.toLowerCase()))
+                    .slice(0, 5);
+            },
+            render: () => {
+                let component: ReactRenderer<WikiLinkListRef> | null = null;
+                let popup: any | null = null;
+                return {
+                    onStart: (props) => {
+                        component = new ReactRenderer(WikiLinkList, {
+                            props,
+                            editor: props.editor,
+                        });
+                        if (!props.clientRect) return;
+                        popup = tippy('body', {
+                            getReferenceClientRect: props.clientRect as any,
+                            appendTo: () => document.body,
+                            content: component.element,
+                            showOnCreate: true,
+                            interactive: true,
+                            trigger: 'manual',
+                            placement: 'bottom-start',
+                        });
+                    },
+                    onUpdate(props) {
+                        component?.updateProps(props);
+                        if (!props.clientRect) return;
+                        popup[0].setProps({ getReferenceClientRect: props.clientRect });
+                    },
+                    onKeyDown(props) {
+                        if (props.event.key === 'Escape') {
+                            popup[0].hide();
+                            return true;
+                        }
+                        return component?.ref?.onKeyDown(props) || false;
+                    },
+                    onExit() {
+                        popup[0].destroy();
+                        component?.destroy();
+                    },
+                };
+            },
+        },
+    }),
+];
+
+const getEditorProps = (onSelectNote: (id: string) => void) => ({
+    attributes: {
+        class: 'prose prose-neutral dark:prose-invert max-w-none focus:outline-none min-h-[calc(100vh-200px)] px-12 py-8',
+    },
+    handleClick: (view: any, pos: number, event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (target.closest('.wiki-link')) {
+            const id = target.getAttribute('data-id');
+            if (id) {
+                onSelectNote(id);
+                return true;
+            }
+        }
+        return false;
+    }
+});
+
 export function NoteEditor({
     note,
     notes,
@@ -77,170 +237,27 @@ export function NoteEditor({
     onDelete,
     onTogglePin,
     onChangeColor,
-    onSelectNote
+    onSelectNote,
 }: NoteEditorProps) {
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
     const notesRef = useRef(notes);
-    const onSelectNoteRef = useRef(onSelectNote);
 
     useEffect(() => {
         notesRef.current = notes;
     }, [notes]);
 
-    useEffect(() => {
-        onSelectNoteRef.current = onSelectNote;
-    }, [onSelectNote]);
-
     const editor = useEditor({
         immediatelyRender: false,
-        extensions: [
-            StarterKit.configure({
-                codeBlock: false,
-            }),
-            Underline,
-            Link.configure({
-                openOnClick: false,
-                HTMLAttributes: {
-                    class: 'text-amber-600 underline cursor-pointer hover:text-amber-700',
-                },
-            }),
-            ResizableImage.configure({
-                HTMLAttributes: {
-                    class: 'rounded-lg shadow-md my-4',
-                },
-            }),
-            Placeholder.configure({
-                placeholder: 'Bắt đầu viết ghi chú của bạn...',
-            }),
-            TaskList,
-            TaskItem.configure({
-                nested: true,
-            }),
-            TextAlign.configure({
-                types: ['heading', 'paragraph'],
-            }),
-            Highlight.configure({
-                multicolor: false,
-                HTMLAttributes: {
-                    class: 'bg-yellow-200 rounded px-0.5',
-                },
-            }),
-            Table.configure({
-                resizable: true,
-                HTMLAttributes: {
-                    class: 'border-collapse table-auto w-full my-4',
-                },
-            }),
-            TableRow,
-            TableCell.configure({
-                HTMLAttributes: {
-                    class: 'border border-neutral-300 p-2',
-                },
-            }),
-            TableHeader.configure({
-                HTMLAttributes: {
-                    class: 'border border-neutral-300 p-2 bg-neutral-100 font-semibold',
-                },
-            }),
-            CodeBlockLowlight.configure({
-                lowlight,
-                HTMLAttributes: {
-                    class: 'bg-neutral-900 text-neutral-100 rounded-lg p-4 my-4 font-mono text-sm overflow-x-auto',
-                },
-            }),
-            Mention.configure({
-                HTMLAttributes: {
-                    class: 'wiki-link inline-flex items-center gap-1 text-violet-700 dark:text-violet-400 font-medium cursor-pointer no-underline bg-violet-100 dark:bg-violet-900/50 px-2 py-0.5 rounded-full border border-violet-300 dark:border-violet-700 hover:bg-violet-200 dark:hover:bg-violet-800/60 transition-colors text-sm',
-                },
-                renderLabel({ node }) {
-                    return `📒 ${node.attrs.label ?? node.attrs.id}`;
-                },
-                suggestion: {
-                    char: '[[',
-                    allowSpaces: true,
-                    items: ({ query }) => {
-                        return notesRef.current
-                            .filter(item => item.title.toLowerCase().includes(query.toLowerCase()))
-                            .slice(0, 5);
-                    },
-                    render: () => {
-                        let component: ReactRenderer<WikiLinkListRef> | null = null;
-                        let popup: any | null = null;
-
-                        return {
-                            onStart: (props) => {
-                                component = new ReactRenderer(WikiLinkList, {
-                                    props,
-                                    editor: props.editor,
-                                });
-
-                                if (!props.clientRect) {
-                                    return;
-                                }
-
-                                popup = tippy('body', {
-                                    getReferenceClientRect: props.clientRect as any,
-                                    appendTo: () => document.body,
-                                    content: component.element,
-                                    showOnCreate: true,
-                                    interactive: true,
-                                    trigger: 'manual',
-                                    placement: 'bottom-start',
-                                });
-                            },
-                            onUpdate(props) {
-                                component?.updateProps(props);
-
-                                if (!props.clientRect) {
-                                    return;
-                                }
-
-                                popup[0].setProps({
-                                    getReferenceClientRect: props.clientRect,
-                                });
-                            },
-                            onKeyDown(props) {
-                                if (props.event.key === 'Escape') {
-                                    popup[0].hide();
-                                    return true;
-                                }
-
-                                return component?.ref?.onKeyDown(props) || false;
-                            },
-                            onExit() {
-                                popup[0].destroy();
-                                component?.destroy();
-                            },
-                        };
-                    },
-                },
-            }),
-        ],
+        extensions: getEditorExtensions(notes, onSelectNote),
         content: note?.content || '',
-        editorProps: {
-            attributes: {
-                class: 'prose prose-neutral dark:prose-invert max-w-none focus:outline-none min-h-[calc(100vh-200px)] px-12 py-8',
-            },
-            handleClick: (view, pos, event) => {
-                const target = event.target as HTMLElement;
-                if (target.closest('.wiki-link')) {
-                    const id = target.getAttribute('data-id');
-                    if (id) {
-                        onSelectNoteRef.current(id);
-                        return true;
-                    }
-                }
-                return false;
-            }
-        },
+        editorProps: getEditorProps(onSelectNote),
         onUpdate: ({ editor }) => {
+            const content = editor.getHTML();
             if (debounceRef.current) {
                 clearTimeout(debounceRef.current);
             }
             debounceRef.current = setTimeout(() => {
-                const content = editor.getHTML();
-
-                // Extract title from content (first block)
+                // Extract title
                 const textContent = editor.getText();
                 const titleMatch = content.match(/<(h[1-3]|p)[^>]*>(.*?)<\/\1>/);
                 let title = '';
@@ -259,16 +276,12 @@ export function NoteEditor({
         },
     });
 
-    // Update editor content when note changes
+    // Update content when note changes from OUTSIDE
     useEffect(() => {
-        if (editor && note) {
-            const currentContent = editor.getHTML();
-            if (currentContent !== note.content) {
-                // emitUpdate: false prevents triggering onUpdate callback
-                editor.commands.setContent(note.content, { emitUpdate: false });
-            }
+        if (note && editor && editor.getHTML() !== note.content) {
+            editor.commands.setContent(note.content, { emitUpdate: false });
         }
-    }, [note?.id, editor]);
+    }, [note?.id, note?.content, editor]);
 
     if (!note) {
         return (
@@ -294,19 +307,23 @@ export function NoteEditor({
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={cn("flex-1 flex flex-col border-t-4 border-l-0 min-w-0 overflow-x-auto", bgColorMap[note.color], borderColorMap[note.color])}
+            className={cn(
+                "flex-1 flex flex-col border-t-4 border-l-0 min-w-0 overflow-x-auto transition-all duration-200",
+                bgColorMap[note.color],
+                borderColorMap[note.color]
+            )}
         >
             {/* Toolbar */}
             <EditorToolbar editor={editor} />
 
-            {/* Editor */}
-            <div className="flex-1 overflow-x-auto overflow-y-auto min-w-0">
-                <div className="min-w-[650px] h-full pb-12">
-                    <EditorContent editor={editor} className="h-full" />
+            {/* Editor Content Area */}
+            <div className="flex-1 flex min-w-0">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 w-full">
+                    <div className="min-w-full h-full pb-12">
+                        <EditorContent editor={editor} className="h-full" />
+                    </div>
                 </div>
             </div>
-
-
         </motion.div>
     );
 }
