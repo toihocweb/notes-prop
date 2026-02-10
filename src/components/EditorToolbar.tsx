@@ -55,11 +55,17 @@ import {
     ArrowUpToLine,
     ArrowDownToLine,
     FoldVertical,
+    PenTool,
 } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 interface EditorToolbarProps {
     editor: Editor | null;
+    isDrawing?: boolean;
+    onToggleDrawing?: () => void;
+    drawingColor?: string;
+    setDrawingColor?: (color: string) => void;
+    onClearDrawing?: () => void;
 }
 
 interface ToolbarButtonProps {
@@ -91,7 +97,14 @@ function ToolbarButton({ icon, label, isActive, onClick, disabled }: ToolbarButt
     );
 }
 
-export function EditorToolbar({ editor }: EditorToolbarProps) {
+export function EditorToolbar({
+    editor,
+    isDrawing,
+    onToggleDrawing,
+    drawingColor,
+    setDrawingColor,
+    onClearDrawing
+}: EditorToolbarProps) {
     if (!editor) return null;
 
     const addLink = () => {
@@ -127,7 +140,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
     const { promptInstall, deferredPrompt } = useInstallPrompt();
 
     return (
-        <div className="flex items-center gap-0.5 p-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50 flex-wrap transition-colors duration-300">
+        <div className="sticky top-0 z-10 flex items-center gap-0.5 p-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50 flex-wrap transition-colors duration-300">
             {/* Undo/Redo */}
             <ToolbarButton
                 icon={<Undo className="w-4 h-4" />}
@@ -297,6 +310,56 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                 label="Chèn hình ảnh"
                 onClick={addImage}
             />
+            {isDrawing && onToggleDrawing && (
+                <>
+                    <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-800 mx-1" />
+
+                    {/* Color Picker */}
+                    <div className="flex items-center gap-1 mx-1">
+                        {[
+                            '#000000',
+                            '#EF4444',
+                            '#3B82F6',
+                            '#22C55E',
+                            '#EAB308',
+                            '#A855F7'
+                        ].map((color) => (
+                            <button
+                                key={color}
+                                className={`w-5 h-5 rounded-full border border-neutral-300 dark:border-neutral-600 ${drawingColor === color ? 'ring-2 ring-offset-1 ring-neutral-900 dark:ring-neutral-100 scale-110' : 'hover:scale-110'}`}
+                                style={{ backgroundColor: color }}
+                                onClick={() => setDrawingColor?.(color)}
+                                title={color}
+                            />
+                        ))}
+                    </div>
+
+                    <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-800 mx-1" />
+
+                    <ToolbarButton
+                        icon={<Trash2 className="w-4 h-4 text-red-500" />}
+                        label="Xóa tất cả"
+                        onClick={onClearDrawing || (() => { })}
+                    />
+
+                    <ToolbarButton
+                        icon={<PenTool className="w-4 h-4" />}
+                        label="Tắt chế độ vẽ"
+                        isActive={true}
+                        onClick={onToggleDrawing}
+                    />
+                </>
+            )}
+
+            {!isDrawing && onToggleDrawing && (
+                <ToolbarButton
+                    icon={<PenTool className="w-4 h-4" />}
+                    label="Bật chế độ vẽ"
+                    isActive={false}
+                    onClick={onToggleDrawing}
+                />
+            )}
+
             <Popover open={tablePopoverOpen} onOpenChange={setTablePopoverOpen}>
                 <Tooltip>
                     <TooltipTrigger asChild>

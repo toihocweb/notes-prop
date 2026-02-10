@@ -38,6 +38,8 @@ import tippy from 'tippy.js';
 import { WikiLinkList, WikiLinkListRef } from './WikiLinkList';
 import { ResizableImage } from './extensions/ResizableImage';
 
+import { DrawingCanvas } from './DrawingCanvas';
+
 const lowlight = createLowlight(common);
 
 const bgColorMap: Record<NoteColor, string> = {
@@ -67,6 +69,9 @@ interface NoteEditorProps {
     onChangeColor: (color: NoteColor) => void;
     onSelectNote: (id: string) => void;
 }
+
+
+
 
 // Reusable editor configuration
 const getEditorExtensions = (notes: Note[], onSelectNote: (id: string) => void) => [
@@ -246,6 +251,20 @@ export function NoteEditor({
         notesRef.current = notes;
     }, [notes]);
 
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [drawingColor, setDrawingColor] = useState('#000000');
+
+    const handleClearDrawing = () => {
+        if (!editor) return;
+        editor.commands.command(({ tr }) => {
+            tr.setNodeAttribute(0, 'lines', []);
+            return true;
+        });
+        onUpdate({
+            drawing: JSON.stringify([])
+        });
+    };
+
     const editor = useEditor({
         immediatelyRender: false,
         extensions: getEditorExtensions(notes, onSelectNote),
@@ -308,19 +327,38 @@ export function NoteEditor({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={cn(
-                "flex-1 flex flex-col border-t-4 border-l-0 min-w-0 overflow-x-auto transition-all duration-200",
+                "flex-1 flex flex-col border-t-4 border-l-0 min-w-0 overflow-x-auto transition-all duration-200 relative",
                 bgColorMap[note.color],
                 borderColorMap[note.color]
             )}
         >
             {/* Toolbar */}
-            <EditorToolbar editor={editor} />
+            <EditorToolbar
+                editor={editor}
+                isDrawing={isDrawing}
+                onToggleDrawing={() => setIsDrawing(!isDrawing)}
+                drawingColor={drawingColor}
+                setDrawingColor={setDrawingColor}
+                onClearDrawing={handleClearDrawing}
+            />
 
             {/* Editor Content Area */}
             <div className="flex-1 flex min-w-0">
                 <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 w-full">
-                    <div className="min-w-full h-full pb-12">
+                    <div className="min-w-full min-h-full pb-12 relative">
                         <EditorContent editor={editor} className="h-full" />
+                        {editor && (
+                            <DrawingCanvas
+                                isDrawing={isDrawing}
+                                color={drawingColor}
+                                initialLines={note?.drawing ? JSON.parse(note.drawing) : []}
+                                onUpdate={(lines) => {
+                                    onUpdate({
+                                        drawing: JSON.stringify(lines)
+                                    });
+                                }}
+                            />
+                        )}
                     </div>
                 </div>
             </div>

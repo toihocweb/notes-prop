@@ -7,6 +7,7 @@ export interface Note {
     color: NoteColor;
     isPinned: boolean;
     order: number;
+    drawing?: string; // JSON string of drawing strokes
 }
 
 export type NoteColor =
